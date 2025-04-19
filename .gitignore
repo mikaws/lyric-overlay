@@ -4,3 +4,9 @@ out
 .idea
 .vs
 .vscode
+*.o
+*.exe
+curl
+.env
+*spotify_token.json
+mystart.bat

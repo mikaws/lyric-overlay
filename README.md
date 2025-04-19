@@ -3,7 +3,7 @@
 **A simple C++ desktop application for displaying real-time lyrics over your screen.**
 
 ## About
-LyricOverlay is a lightweight program that fetches the currently playing track from **Spotify** and displays the lyrics as an overlay. It runs in the background and stays on top of other applications.
+LyricOverlay is a lightweight program that fetches the currently playing track from **Spotify** and displays the lyrics as an overlay. It runs in the background and stays on top of other applications. There's only support for Windows, but the project could be cross-plataform in the future.
 
 ## Features
 - **Spotify Integration** – Fetches the current song in real-time (1s).
@@ -28,11 +28,25 @@ git clone https://github.com/yourusername/LyricOverlay.git
 cd LyricOverlay
 ```
 
-### 3. Build & Run
-Compile using your preferred C++ build system. Example with CMake:
+### 3. Build & Run (Windows)
+
+Clone vcpkg and install curl and openssl
 ```bash
-cmake -B build
-cmake --build build
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg && ./bootstrap-vcpkg.bat
+./vcpkg.exe install curl:x64-windows
+./vcpkg.exe openssl:x64-windows
+```
+Add your spotify credentials in the start.bat 
+
+```bash
+set CLIENT_ID=your-client-id
+set SECRET_KEY=your-secret-key
+```
+
+Compile using CMake
+```bash
+cmake -B build -S . "-DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake"
 .\start.bat
 ```
 

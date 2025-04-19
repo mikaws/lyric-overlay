@@ -1,8 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <dwmapi.h>
+#include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include "lyrics.hpp"
+#include "spotify_api.hpp"
 
 #if defined(SFML_SYSTEM_WINDOWS)
 #include <windows.h>
@@ -118,25 +121,43 @@ std::vector<sf::Text> createLyricsText(const sf::Font &font, int fontSize)
 
 int main()
 {
+    const char* client_id = std::getenv("CLIENT_ID");
+    const char* secret_key = std::getenv("SECRET_KEY");
+    if (!client_id || !secret_key) {
+        std::cerr << "Error: Environment variables CLIENT_ID and/or SECRET_KEY not found\n";
+        return 1;
+    }
+    SpotifyAPI spotify(client_id, secret_key);
+
+    // Authenticate before starting the main loop
+    std::string response;
+    if (!spotify.makeRequest("/me/player", response)) {
+        std::cerr << "Initial authentication required. " << spotify.getLastError() << std::endl;
+        return 1;
+    }
+
+    std::cout << "Successfully authenticated!\n";
+
     const unsigned char opacity = 230;
     sf::RenderWindow window(sf::VideoMode({400, 600}), "Lyrics Overlay", sf::Style::None);
     window.setFramerateLimit(144);
     enableBlurBehind(window.getNativeHandle());
     setTransparency(window.getNativeHandle(), opacity);
     int fontSize = 35;
-
+    
+    
     const sf::Font font("roboto.ttf");
     sf::Text actualMusic(font, "Music Playing: Pink Floyd - Dogs", 15);
     actualMusic.setFillColor(sf::Color::Green);
     actualMusic.setStyle(sf::Text::Bold);
     actualMusic.setPosition({10, 10});
-
+    
     sf::Clock clock;
-
+    
     std::vector<sf::Text> lyrics = createLyricsText(font, fontSize);
-    int currentIndex = 0;
+    int currentIndex = 0;  
     updateLyricsList(window, lyrics, currentIndex);
-
+    
     bool isBorderless = true;
     while (window.isOpen())
     {
@@ -166,8 +187,12 @@ int main()
         window.draw(actualMusic);
         if (currentIndex < lyrics.size())
         {
-            if (clock.getElapsedTime().asSeconds() >= 2)
+            if (clock.getElapsedTime().asSeconds() >= 1)
             {
+                std::string response;
+                if (!spotify.makeRequest("/me/player", response)) {
+                    std::cerr << "Error: " << spotify.getLastError() << std::endl;
+                }
                 currentIndex++;
                 if (currentIndex < lyrics.size())
                 {
