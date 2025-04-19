@@ -12,6 +12,9 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp)
-target_compile_features(main PRIVATE cxx_std_17)
-target_link_libraries(main PRIVATE SFML::Graphics)
+add_executable(lyric-overlay 
+    src/main.cpp
+    src/lyrics.cpp
+)
+target_compile_features(lyric-overlay PRIVATE cxx_std_17)
+target_link_libraries(lyric-overlay PRIVATE SFML::Graphics SFML::Audio SFML::Network dwmapi)
