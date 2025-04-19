@@ -29,11 +29,22 @@ jobs:
     #   if: runner.os == 'Linux'
     #   run: sudo apt-get update && sudo apt-get install libxrandr-dev libxcursor-dev libxi-dev libudev-dev libflac-dev libvorbis-dev libgl1-mesa-dev libegl1-mesa-dev libfreetype-dev
 
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v7
+      with:
+        vcpkgGitCommitId: '2024.02.14'
+        setupOnly: true
+
+    - name: Install dependencies
+      run: |
+        vcpkg install curl:x64-windows
+        vcpkg integrate install
+    
     - name: Checkout
       uses: actions/checkout@v4
 
     - name: Configure
-      run: cmake -B build ${{matrix.platform.flags}} ${{matrix.config.flags}}
+      run: cmake -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake ${{matrix.platform.flags}} ${{matrix.config.flags}}
 
     - name: Build
       run: cmake --build build --config Release

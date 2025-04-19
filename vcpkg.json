@@ -1,0 +1,11 @@
+{
+    "name": "lyric-overlay",
+    "version-string": "0.1.0",
+    "dependencies": [
+      "curl",
+      {
+        "name": "curl",
+        "platform": "windows"
+      }
+    ]
+  }
