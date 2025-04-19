@@ -44,6 +44,6 @@ cmake --build build
 Contributions are welcome. Open an issue or submit a pull request.
 
 ## License
-MIT License – Free to use and modify.
+GPL 3.0 - A free software
 
 ---
