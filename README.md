@@ -33,6 +33,7 @@ Compile using your preferred C++ build system. Example with CMake:
 ```bash
 cmake -B build
 cmake --build build
+.\start.bat
 ```
 
 ## Roadmap
