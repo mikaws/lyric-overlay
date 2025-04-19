@@ -1,11 +1,12 @@
 #include <SFML/Graphics.hpp>
-#include <windows.h>
 #include <optional>
 #include <dwmapi.h>
 #include <iostream>
 #include "lyrics.hpp"
 
 #if defined(SFML_SYSTEM_WINDOWS)
+#include <windows.h>
+
 void enableBlurBehind(HWND hwnd) // unsigned char opacity
 {
     SetWindowPos(hwnd, HWND_TOPMOST, 100, 100, 400, 600, SWP_SHOWWINDOW);
@@ -46,23 +47,18 @@ bool isMouseInside(HWND hwnd)
 #else
 void enableBlurBehind(Window wnd)
 {
-    
 }
 void setTransparency(Window wnd, unsigned char alpha)
 {
-    
 }
 void toggleWindowStyle(Window wnd, bool addBorders)
 {
-
 }
 bool isMouseInside(Window wnd)
 {
     return false;
 }
 #endif
-
-
 
 void updateLyricsList(sf::RenderWindow &window, std::vector<sf::Text> &lyrics, int currentIndex)
 {
