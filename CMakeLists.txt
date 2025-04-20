@@ -15,11 +15,10 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(lyric-overlay 
-    src/main.cpp
-    src/lyrics.cpp
-    src/random.cpp
-    src/spotify_api.cpp
+add_executable(GLOBE_RECURSE lyric-overlay 
+    src/*.cpp
+    src/*.h
+    src/*.hpp
 )
 target_compile_features(lyric-overlay PRIVATE cxx_std_17)
 target_link_libraries(lyric-overlay PRIVATE SFML::Graphics ${CURL_LIBRARIES} dwmapi)
