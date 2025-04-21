@@ -33,9 +33,15 @@ private:
     bool refresh();
 
 public:
+    struct TrackInfo {
+        std::string id;
+        unsigned int timestamp;
+        unsigned int progress_ms;
+    };
+    TrackInfo track_info;
     SpotifyAPI(const std::string& client_id, const std::string& client_secret);
     ~SpotifyAPI();
     std::string getAccessToken();
-    bool makeRequest(const std::string& endpoint, std::string& response);
+    bool getCurrentTrackRequest();
     const std::string& getLastError() const;
 };

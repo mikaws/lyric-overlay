@@ -7,15 +7,15 @@ using json = nlohmann::json;
 SpotifyAPI::SpotifyAPI(const std::string &client_id, const std::string &client_secret)
     : client_id(client_id), client_secret(client_secret)
 {
-    curl = curl_easy_init();
+    SpotifyAPI::curl = curl_easy_init();
     loadTokenFromFile();
 }
 
 // deconstructor
 SpotifyAPI::~SpotifyAPI()
 {
-    if (curl)
-        curl_easy_cleanup(curl);
+    if (SpotifyAPI::curl)
+        curl_easy_cleanup(SpotifyAPI::curl);
 }
 
 // @@@ token management @@@
@@ -106,13 +106,13 @@ bool SpotifyAPI::refresh() {
     std::string token_request_data = "grant_type=refresh_token&refresh_token=" + token_info.refresh_token +
                                      "&client_id=" + client_id;
 
-    curl_easy_setopt(curl, CURLOPT_URL, "https://accounts.spotify.com/api/token");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, token_request_data.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_URL, "https://accounts.spotify.com/api/token");
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_POSTFIELDS, token_request_data.c_str());
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_WRITEDATA, &response);
 
-    CURLcode res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(SpotifyAPI::curl);
     curl_slist_free_all(headers);
 
     if (res != CURLE_OK) {
@@ -163,13 +163,13 @@ bool SpotifyAPI::authenticate() {
                                      "&client_id=" + client_id +
                                      "&client_secret=" + client_secret;
 
-    curl_easy_setopt(curl, CURLOPT_URL, "https://accounts.spotify.com/api/token");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, token_request_data.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_URL, "https://accounts.spotify.com/api/token");
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_POSTFIELDS, token_request_data.c_str());
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_WRITEDATA, &response);
 
-    CURLcode res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(SpotifyAPI::curl);
     curl_slist_free_all(headers);
 
     if (res != CURLE_OK) {
@@ -194,39 +194,48 @@ bool SpotifyAPI::authenticate() {
     }
 }
 
-bool SpotifyAPI::makeRequest(const std::string &endpoint, std::string &response)
+bool SpotifyAPI::getCurrentTrackRequest()
 {
-    if (!curl) {
+    std::string response;
+    if (!SpotifyAPI::curl) {
         last_error = "cURL not initialized.";
         return false;
     }
-
     std::string token = getAccessToken();
     if (token.empty()) {
         last_error = "Failed to get access token.";
         return false;
     }
-
     struct curl_slist *headers = nullptr;
     headers = curl_slist_append(headers, ("Authorization: Bearer " + token).c_str());
     
     // std::string additional_types = "?additional_types=track";
     char curl_errbuf[CURL_ERROR_SIZE];
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
-    curl_easy_setopt(curl, CURLOPT_URL, ("https://api.spotify.com/v1" + endpoint).c_str());
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_ERRORBUFFER, curl_errbuf);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_URL, "https://api.spotify.com/v1/me/player/currently-playing");
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(SpotifyAPI::curl, CURLOPT_WRITEDATA, &response);
 
-    CURLcode res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(SpotifyAPI::curl);
     curl_slist_free_all(headers);
 
     if (res != CURLE_OK) {
         last_error = std::string("Request failed: ") + curl_errbuf;
         return false;
     }
-    std::cout << response << std::endl;
-    return true;
+    try {
+        if (!response.empty()) {
+            json j = json::parse(response);
+            track_info.id = j["item"]["id"];
+            track_info.progress_ms = j["progress_ms"];
+            track_info.timestamp = j["timestamp"];
+        }
+        return true;
+    } catch (...) {
+        last_error = "Failed to parse request.";
+        return false;
+    }
 }
 
 const std::string& SpotifyAPI::getLastError() const {
