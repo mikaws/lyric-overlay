@@ -24,15 +24,19 @@ std::string SpotifyAPI::getAccessToken()
 {
     if (noToken())
     {
+        std::cout << "No token found, starting authentication process..." << std::endl;
         if (!authenticate())
         {
+            std::cout << "Authentication failed: " << last_error << std::endl;
             return "";
         }
     }
     else if (isTokenExpired())
     {
+        std::cout << "Token expired, refreshing..." << std::endl;
         if (!refresh())
         {
+            std::cout << "Token refresh failed: " << last_error << std::endl;
             return "";
         }
     }
@@ -70,7 +74,10 @@ bool SpotifyAPI::loadTokenFromFile()
     {
         std::ifstream file(token_file);
         if (!file.is_open())
+        {
+            std::cout << "Could not open token file: " << token_file << std::endl;
             return false;
+        }
 
         json j = json::parse(file);
         token_info.access_token = j["access_token"];
@@ -79,11 +86,13 @@ bool SpotifyAPI::loadTokenFromFile()
         token_info.scope = j["scope"];
         token_info.refresh_token = j["refresh_token"];
         token_info.created_at = std::chrono::system_clock::from_time_t(j["created_at"]);
-
+        
+        std::cout << "Successfully loaded token from file" << std::endl;
         return true;
     }
-    catch (...)
+    catch (const std::exception& e)
     {
+        std::cout << "Error loading token file: " << e.what() << std::endl;
         return false;
     }
 }
@@ -230,6 +239,9 @@ bool SpotifyAPI::getCurrentTrackRequest()
             track_info.id = j["item"]["id"];
             track_info.progress_ms = j["progress_ms"];
             track_info.timestamp = j["timestamp"];
+            current_track = j["item"]["name"];
+        } else {
+            current_track = "There is no music playing";
         }
         return true;
     } catch (...) {

@@ -81,9 +81,9 @@ void updateLyricsList(sf::RenderWindow &window, std::vector<sf::Text> &lyrics, i
     {
         lyrics[i].setCharacterSize(fontSize);
 
-        if (i <= currentIndex)
+        if (i <= currentIndex && i>0)
         {
-            lyrics[i].setFillColor(sf::Color(255, 255, 255));
+            lyrics[i-1].setFillColor(sf::Color(255, 255, 255));
         }
         else
         {
@@ -151,33 +151,33 @@ int main()
     int fontSize = 35;
 
     const sf::Font font("roboto.ttf");
-    sf::Text actualMusic(font, "Music Playing", 15);
-    actualMusic.setFillColor(sf::Color::Green);
-    actualMusic.setStyle(sf::Text::Bold);
-    actualMusic.setPosition({10, 10});
 
     sf::Clock clock;
 
     std::vector<sf::Text> lyricsText;
     int currentIndex = 0;
-    if (currentTrack.id != spotify.track_info.id)
+
+    std::cout << "New track detected! ID: " << spotify.track_info.id << std::endl;
+    currentTrack.id = spotify.track_info.id;
+    currentTrack.progress_ms = spotify.track_info.progress_ms;
+    currentTrack.timestamp = spotify.track_info.timestamp;
+    std::cout << "Requesting lyrics for track..." << std::endl;
+    if (!lyricsApi.requestLyrics(currentTrack.id))
     {
-        std::cout << "New track detected! ID: " << spotify.track_info.id << std::endl;
-        currentTrack.id = spotify.track_info.id;
-        currentTrack.progress_ms = spotify.track_info.progress_ms;
-        currentTrack.timestamp = spotify.track_info.timestamp;
-        std::cout << "Requesting lyrics for track..." << std::endl;
-        if (!lyricsApi.requestLyrics(currentTrack.id))
-        {
-            std::cerr << "Error fetching lyrics: " << lyricsApi.getLastError() << std::endl;
-        }
-        else 
-        {
-            std::cout << "Lyrics fetched successfully. Number of lines: " << lyricsApi.array.size() << std::endl;
-        }
-        lyricsText = createLyricsText(font, fontSize, lyricsApi.array);
-        std::cout << "Created lyrics text objects: " << lyricsText.size() << " lines" << std::endl;
+        std::cerr << "Error fetching lyrics: " << lyricsApi.getLastError() << std::endl;
     }
+    else 
+    {
+        std::cout << "Lyrics fetched successfully. Number of lines: " << lyricsApi.array.size() << std::endl;
+    }
+    lyricsText = createLyricsText(font, fontSize, lyricsApi.array);
+    std::cout << "Created lyrics text objects: " << lyricsText.size() << " lines" << std::endl;
+    
+    sf::Text actualMusic(font, spotify.current_track, 15);
+    actualMusic.setFillColor(sf::Color::Green);
+    actualMusic.setStyle(sf::Text::Bold);
+    actualMusic.setPosition({10, 10});
+
     updateLyricsList(window, lyricsText, currentIndex);
     std::cout << "Initial lyrics list updated. Current index: " << currentIndex << std::endl;
 
@@ -207,7 +207,6 @@ int main()
         }
         window.clear(sf::Color(0, 0, 0, 0));
 
-        window.draw(actualMusic);
         if (currentIndex < lyricsText.size())
         {
             if (clock.getElapsedTime().asSeconds() >= 1)
@@ -217,13 +216,13 @@ int main()
                 {
                     std::cerr << "Error fetching track: " << spotify.getLastError() << std::endl;
                 }
-
                 if (currentTrack.id != spotify.track_info.id)
                 {
                     std::cout << "Track changed! New ID: " << spotify.track_info.id << std::endl;
                     currentTrack.id = spotify.track_info.id;
                     currentTrack.progress_ms = spotify.track_info.progress_ms;
                     currentTrack.timestamp = spotify.track_info.timestamp;
+                    actualMusic.setString(spotify.current_track);
                     if (!lyricsApi.requestLyrics(currentTrack.id))
                     {
                         std::cerr << "Error fetching lyrics: " << lyricsApi.getLastError() << std::endl;
@@ -232,6 +231,7 @@ int main()
                     {
                         std::cout << "Lyrics fetched successfully. Number of lines: " << lyricsApi.array.size() << std::endl;
                     }
+                    lyricsText.clear();
                     lyricsText = createLyricsText(font, fontSize, lyricsApi.array);
                     std::cout << "Updated lyrics text objects: " << lyricsText.size() << " lines" << std::endl;
                 }
@@ -239,19 +239,21 @@ int main()
                 {
                     std::cout << "Track progress updated: " << spotify.track_info.progress_ms << "ms" << std::endl;
                     currentTrack.progress_ms = spotify.track_info.progress_ms;
-                    currentIndex++;
-                    std::cout << "Moving to next line, index: " << currentIndex << std::endl;
-                    if (currentIndex < lyricsText.size())
-                    {
-                        updateLyricsList(window, lyricsText, currentIndex);
-                        clock.restart();
+                    if (currentTrack.progress_ms >= lyricsApi.array[currentIndex].startTimeMs) {
+                        currentIndex++;
+                        std::cout << "Moving to next line, index: " << currentIndex << std::endl;
+                        if (currentIndex < lyricsText.size())
+                        {
+                            updateLyricsList(window, lyricsText, currentIndex);
+                            clock.restart();
+                        }
                     }
                 }
             }
         }
+        window.draw(actualMusic);
         if (currentIndex >= lyricsText.size())
         {
-            std::cout << "Reached end of lyrics (index: " << currentIndex << ")" << std::endl;
             clock.stop();
         }
 

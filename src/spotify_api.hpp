@@ -22,7 +22,7 @@ private:
     TokenInfo token_info;
     const std::string client_id;
     const std::string client_secret;
-    const std::string token_file = "spotify_token.json";
+    const std::string token_file = "../spotify_token.json";  // Update path to point to root directory
     std::string last_error;
     static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp);
     bool noToken();
@@ -38,6 +38,7 @@ public:
         unsigned int timestamp;
         unsigned int progress_ms;
     };
+    std::string current_track = "";
     TrackInfo track_info;
     SpotifyAPI(const std::string& client_id, const std::string& client_secret);
     ~SpotifyAPI();
