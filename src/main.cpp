@@ -233,6 +233,7 @@ int main()
                     }
                     lyricsText.clear();
                     lyricsText = createLyricsText(font, fontSize, lyricsApi.array);
+                    updateLyricsList(window, lyricsText, currentIndex);
                     std::cout << "Updated lyrics text objects: " << lyricsText.size() << " lines" << std::endl;
                 }
                 else if (currentTrack.progress_ms != spotify.track_info.progress_ms)
@@ -264,11 +265,9 @@ int main()
         int visibleLines = 0;
         for (size_t i = 0; i < lyricsText.size(); i++)
         {
-            if (lyricsText[i].getPosition().y > 100)
-            {
+
                 window.draw(lyricsText[i]);
                 visibleLines++;
-            }
         }
         if (visibleLines == 0 && !lyricsText.empty())
         {
