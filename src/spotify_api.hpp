@@ -5,6 +5,7 @@
 #include <chrono>
 #include "curl/curl.h"
 #include "include/json.hpp"
+#include "base64.hpp"
 
 using json = nlohmann::json;
 
@@ -22,7 +23,7 @@ private:
     TokenInfo token_info;
     const std::string client_id;
     const std::string client_secret;
-    const std::string token_file = "../spotify_token.json";  // Update path to point to root directory
+    const std::string token_file = "./spotify_token.json";
     std::string last_error;
     static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp);
     bool noToken();

@@ -16,6 +16,8 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 add_executable(lyric-overlay 
+    src/base64.hpp
+    src/base64.cpp
     src/lyrics_api.cpp
     src/lyrics_api.hpp
     src/main.cpp

@@ -23,7 +23,7 @@ bool LyricsAPI::requestLyrics(std::string music_id)
     std::string response; // Buffer to store response
     std::string url = "http://localhost:8000/?trackid=" + music_id;
     std::cout << "Requesting URL: " << url << std::endl;
-    
+
     curl_easy_setopt(LyricsAPI::curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(LyricsAPI::curl, CURLOPT_WRITEFUNCTION, +[](void* contents, size_t size, size_t nmemb, void* userp) {
         ((std::string*)userp)->append((char*)contents, size * nmemb);

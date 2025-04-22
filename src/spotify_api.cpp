@@ -110,10 +110,14 @@ size_t SpotifyAPI::WriteCallback(void *contents, size_t size, size_t nmemb, std:
 bool SpotifyAPI::refresh() {
     std::string response;
     struct curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
+    std::string auth = client_id + ":" + client_secret;
+    std::string auth_base64 = base64_encode(reinterpret_cast<const BYTE*>(auth.data()), auth.size());
+    std::string auth_header = "Authorization: Basic " + auth_base64;
 
-    std::string token_request_data = "grant_type=refresh_token&refresh_token=" + token_info.refresh_token +
-                                     "&client_id=" + client_id;
+    headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
+    headers = curl_slist_append(headers, auth_header.c_str());
+
+    std::string token_request_data = "grant_type=refresh_token&refresh_token=" + token_info.refresh_token;
 
     curl_easy_setopt(SpotifyAPI::curl, CURLOPT_URL, "https://accounts.spotify.com/api/token");
     curl_easy_setopt(SpotifyAPI::curl, CURLOPT_HTTPHEADER, headers);
@@ -135,7 +139,6 @@ bool SpotifyAPI::refresh() {
         token_info.token_type = j["token_type"];
         token_info.expires_in = j["expires_in"];
         token_info.scope = j["scope"];
-        token_info.refresh_token = j["refresh_token"];
         token_info.created_at = std::chrono::system_clock::now();
 
         saveTokenToFile();
@@ -242,6 +245,9 @@ bool SpotifyAPI::getCurrentTrackRequest()
             current_track = j["item"]["name"];
         } else {
             current_track = "There is no music playing";
+            track_info.id = "";
+            track_info.progress_ms = 0;
+            track_info.timestamp = 0;
         }
         return true;
     } catch (...) {

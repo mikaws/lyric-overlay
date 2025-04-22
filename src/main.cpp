@@ -81,9 +81,9 @@ void updateLyricsList(sf::RenderWindow &window, std::vector<sf::Text> &lyrics, i
     {
         lyrics[i].setCharacterSize(fontSize);
 
-        if (i <= currentIndex && i>0)
+        if (i <= currentIndex && i > 0)
         {
-            lyrics[i-1].setFillColor(sf::Color(255, 255, 255));
+            lyrics[i - 1].setFillColor(sf::Color(255, 255, 255));
         }
         else
         {
@@ -166,13 +166,13 @@ int main()
     {
         std::cerr << "Error fetching lyrics: " << lyricsApi.getLastError() << std::endl;
     }
-    else 
+    else
     {
         std::cout << "Lyrics fetched successfully. Number of lines: " << lyricsApi.array.size() << std::endl;
     }
     lyricsText = createLyricsText(font, fontSize, lyricsApi.array);
     std::cout << "Created lyrics text objects: " << lyricsText.size() << " lines" << std::endl;
-    
+
     sf::Text actualMusic(font, spotify.current_track, 15);
     actualMusic.setFillColor(sf::Color::Green);
     actualMusic.setStyle(sf::Text::Bold);
@@ -207,15 +207,14 @@ int main()
         }
         window.clear(sf::Color(0, 0, 0, 0));
 
-        if (currentIndex < lyricsText.size())
+        if (clock.getElapsedTime().asSeconds() >= 1)
         {
-            if (clock.getElapsedTime().asSeconds() >= 1)
+            if (!spotify.getCurrentTrackRequest())
             {
-
-                if (!spotify.getCurrentTrackRequest())
-                {
-                    std::cerr << "Error fetching track: " << spotify.getLastError() << std::endl;
-                }
+                std::cerr << "Error fetching track: " << spotify.getLastError() << std::endl;
+            }
+            if (!spotify.track_info.id.empty())
+            {
                 if (currentTrack.id != spotify.track_info.id)
                 {
                     std::cout << "Track changed! New ID: " << spotify.track_info.id << std::endl;
@@ -223,11 +222,12 @@ int main()
                     currentTrack.progress_ms = spotify.track_info.progress_ms;
                     currentTrack.timestamp = spotify.track_info.timestamp;
                     actualMusic.setString(spotify.current_track);
+                    currentIndex = 0;
                     if (!lyricsApi.requestLyrics(currentTrack.id))
                     {
                         std::cerr << "Error fetching lyrics: " << lyricsApi.getLastError() << std::endl;
                     }
-                    else 
+                    else
                     {
                         std::cout << "Lyrics fetched successfully. Number of lines: " << lyricsApi.array.size() << std::endl;
                     }
@@ -239,23 +239,27 @@ int main()
                 {
                     std::cout << "Track progress updated: " << spotify.track_info.progress_ms << "ms" << std::endl;
                     currentTrack.progress_ms = spotify.track_info.progress_ms;
-                    if (currentTrack.progress_ms >= lyricsApi.array[currentIndex].startTimeMs) {
+                    if (!lyricsApi.array.empty() &&
+                        currentIndex < lyricsApi.array.size() &&
+                        currentTrack.progress_ms >= lyricsApi.array[currentIndex].startTimeMs)
+                    {
                         currentIndex++;
                         std::cout << "Moving to next line, index: " << currentIndex << std::endl;
                         if (currentIndex < lyricsText.size())
                         {
                             updateLyricsList(window, lyricsText, currentIndex);
-                            clock.restart();
                         }
                     }
                 }
+            } else {
+                actualMusic.setString("There is no music playing");
+                lyricsText.clear();
+                currentIndex = 0;
             }
+            clock.restart();
         }
+
         window.draw(actualMusic);
-        if (currentIndex >= lyricsText.size())
-        {
-            clock.stop();
-        }
 
         int visibleLines = 0;
         for (size_t i = 0; i < lyricsText.size(); i++)
@@ -266,7 +270,8 @@ int main()
                 visibleLines++;
             }
         }
-        if (visibleLines == 0 && !lyricsText.empty()) {
+        if (visibleLines == 0 && !lyricsText.empty())
+        {
             std::cout << "Warning: No lyrics are being drawn despite having " << lyricsText.size() << " lines" << std::endl;
         }
         window.display();
