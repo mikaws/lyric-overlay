@@ -19,9 +19,9 @@ bool LyricsAPI::requestLyrics(std::string music_id)
         last_error = "CURL not initialized";
         return false;
     }
-    
+    std::string lyricsApiEndpoint = std::getenv("LYRICS_API_ENDPOINT");
     std::string response; // Buffer to store response
-    std::string url = "http://localhost:8000/?trackid=" + music_id;
+    std::string url = lyricsApiEndpoint + "/?trackid=" + music_id;
     std::cout << "Requesting URL: " << url << std::endl;
 
     curl_easy_setopt(LyricsAPI::curl, CURLOPT_URL, url.c_str());

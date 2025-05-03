@@ -124,9 +124,9 @@ int main()
     const char *client_id = std::getenv("CLIENT_ID");
     const char *secret_key = std::getenv("SECRET_KEY");
     SpotifyAPI::TrackInfo currentTrack;
-    if (!client_id || !secret_key)
+    if (!client_id || !secret_key || !std::getenv("LYRICS_API_ENDPOINT"))
     {
-        std::cerr << "Error: Environment variables CLIENT_ID and/or SECRET_KEY not found\n";
+        std::cerr << "Error: Environment variables CLIENT_ID and/or SECRET_KEY and/or LYRICS_API_ENDPOINT not found\n";
         return 1;
     }
     SpotifyAPI spotify(client_id, secret_key);

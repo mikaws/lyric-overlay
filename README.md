@@ -1,14 +1,14 @@
 # Lyric Overlay
 
+![Lyric Ovelay](img/app.jpg)
+
 **A simple C++ desktop application for displaying real-time lyrics over your screen.**
 
-**WARNING:** If you build and compile the project it won't run. I still need to update the docs with some valious information
-
 ## About
-LyricOverlay is a lightweight program that fetches the currently playing track from **Spotify** and displays the lyrics as an overlay. It runs in the background and stays on top of other applications. There's only support for Windows, but the project could be cross-plataform in the future.
+LyricOverlay is a lightweight program that fetches the currently playing track from **Spotify** and displays the lyrics as an overlay. It runs in the background and stays on top of other applications. There's only support for Windows, but the project might be cross-plataform in the future.
 
 ## Support
-- Only Windows, but I will try to make it compatible with Linux and MacOS
+- Only Windows.
 
 ## Features
 - **Spotify Integration** – Fetches the current song in real-time (1s).
@@ -17,8 +17,24 @@ LyricOverlay is a lightweight program that fetches the currently playing track f
 ## Dependencies
 - **C++** – Core language
 - **SFML** – Handles window rendering and text display
-- **Spotify Web API** – Retrieves current track information
-- **Lyrics API** – Fetches lyrics for the current track (still undefined)
+- **Official Spotify Web API** – Retrieves current track information
+- **Lyrics API** – Fetches lyrics for the current track
+
+## Lyrics API Integration
+
+LyricOverlay does **not** fetch lyrics directly from Spotify or any official Spotify API. Instead, you must provide your own lyrics API endpoint. By default, you can use [spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) or any other lyrics API, as long as it returns data in the same format as the Spotify Web API's lyrics endpoint.
+
+**Setup:**
+1. Deploy or choose a lyrics API (such as [akashrchandran/spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api)).
+2. Set the `LYRICS_API_ENDPOINT` environment variable in your `start.bat` to point to your chosen API.
+
+Example:
+```bat
+set LYRICS_API_ENDPOINT=http://localhost:3000
+```
+
+> **Disclaimer:**  
+> Using the [akashrchandran/spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) or similar services may violate Spotify's Terms of Service. Use these APIs at your own risk. LyricOverlay itself does not violate any Spotify terms; it only displays lyrics fetched from an external API endpoint that you provide.
 
 ## Installation
 
@@ -37,10 +53,10 @@ cd LyricOverlay
 
 Clone vcpkg and install curl and openssl
 ```bash
-git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg && ./bootstrap-vcpkg.bat
-./vcpkg.exe install curl:x64-windows
-./vcpkg.exe openssl:x64-windows
+git submodule update --init --recursive
+cd vcpkg
+./bootstrap-vcpkg.bat
+./vcpkg.exe install
 ```
 Add your spotify credentials in the start.bat 
 
